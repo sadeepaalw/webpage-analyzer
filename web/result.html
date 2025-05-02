@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Result</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #1d4ed8;
+            border-bottom: 2px solid #93c5fd;
+            padding-bottom: 8px;
+        }
+
+        h2 {
+            margin-top: 20px;
+            color: #2563eb;
+        }
+
+        ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        strong {
+            color: #374151;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Analysis Results for: {{ .URL }}</h1>
+
+    <p><strong>Title:</strong> {{ .Title }}</p>
+
+    <h2>Headings</h2>
+    <ul>
+        {{ range $level, $count := .Headings }}
+        <li><strong>{{ $level }}</strong>: {{ $count }}</li>
+        {{ end }}
+    </ul>
+
+    <p><strong>Internal Links:</strong> {{ .Internal }}</p>
+    <p><strong>External Links:</strong> {{ .External }}</p>
+    <p><strong>Contains Login Form:</strong> {{ if .HasLogin }}Yes{{ else }}No{{ end }}</p>
+
+    <a href="/">← Back to Home</a>
+</div>
+</body>
+</html>

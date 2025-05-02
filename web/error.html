@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Error</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #fdf2f2; color: #b91c1c; }
+        h1 { color: #991b1b; }
+        code { background: #fee2e2; padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<h1>Error Analyzing URL</h1>
+<p><strong>URL:</strong> {{ .URL }}</p>
+<p><strong>Status Code:</strong> {{ .StatusCode }}</p>
+<p><strong>Error:</strong> <code>{{ .ErrorMessage }}</code></p>
+<br>
+<a href="/">← Back</a>
+</body>
+</html>
