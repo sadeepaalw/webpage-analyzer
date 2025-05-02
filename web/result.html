@@ -67,10 +67,10 @@
 
     <p><strong>Title:</strong> {{ .Title }}</p>
 
-    <h2>Headings</h2>
+    <h3>Headings</h3>
     <ul>
         {{ range $level, $count := .Headings }}
-        <li><strong>{{ $level }}</strong>: {{ $count }}</li>
+        <li><strong>{{ .PropertyName }}</strong>: {{ .NumberOfOccurrences }}</li>
         {{ end }}
     </ul>
 

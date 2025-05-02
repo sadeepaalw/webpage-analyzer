@@ -1,13 +1,29 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"net/url"
 	"strings"
 	"web-analyzer/adapter"
+	"web-analyzer/modals"
+	"web-analyzer/services"
+	"web-analyzer/validators"
 )
+
+func GetBaseURL(rawUrl string) (*url.URL, error) {
+	parsedURL, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	parsedURL.Path = ""
+	parsedURL.RawQuery = ""
+	parsedURL.Fragment = ""
+	return parsedURL, nil
+}
 
 func InvokeInitialPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "input.html", nil)
@@ -15,68 +31,91 @@ func InvokeInitialPage(c *gin.Context) {
 
 func InvokeAnalyzer(c *gin.Context) {
 
-	url := c.PostForm("url")
-	if !strings.HasPrefix(url, "http") {
-		url = "https://" + url
-	}
-	//http.Get(url)
+	formUrl := c.PostForm("formUrl")
 
-	resp, err := adapter.InvokeRequest(url, "GET")
+	isValid := validators.IsValidURL(formUrl)
+	if !isValid {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"URL":          formUrl,
+			"StatusCode":   http.StatusBadRequest,
+			"ErrorMessage": "Invalid URL please check the URL and try again",
+		})
+		return
+	}
+
+	baseUrl, err := GetBaseURL(formUrl)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"URL":          url,
+			"URL":          formUrl,
 			"StatusCode":   http.StatusBadRequest,
+			"ErrorMessage": "Unable to parse URL please check the URL and try again",
+		})
+	}
+
+	if !strings.HasPrefix(formUrl, "http") {
+		formUrl = "https://" + formUrl
+	}
+
+	body, status, err := adapter.InvokeRequest(formUrl, "GET")
+	if err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"URL":          formUrl,
+			"StatusCode":   http.StatusNotFound,
 			"Error":        err,
 			"ErrorMessage": fmt.Sprintf("Failed to fetch URL: %v", err),
 		})
 		return
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if status != http.StatusOK {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"URL":          url,
-			"StatusCode":   resp.StatusCode,
+			"URL":          formUrl,
+			"StatusCode":   status,
 			"Error":        err,
-			"ErrorMessage": fmt.Sprintf("Non-200 status code: %d", resp.StatusCode),
+			"ErrorMessage": fmt.Sprintf("Non-200 status code: %d", status),
 		})
 		return
 	}
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"URL":          url,
-			"StatusCode":   resp.StatusCode,
+			"URL":          formUrl,
+			"StatusCode":   status,
 			"Error":        err,
 			"ErrorMessage": fmt.Sprintf("Error parsing HTML: %v", err),
 		})
 		return
 	}
 
-	title := doc.Find("title").Text()
-	headings := map[string]int{}
-	for i := 1; i <= 6; i++ {
-		headings[fmt.Sprintf("h%d", i)] = doc.Find(fmt.Sprintf("h%d", i)).Length()
+	ctx := services.AnalyzerContext{
+		Document: doc,
+		Manager:  modals.NewPageInfoModalManager(),
+		BaseURL:  baseUrl,
 	}
-	hasLogin := doc.Find("input[type='password']").Length() > 0
+
+	services.TitleAnalyzer().Analyze(ctx)
+	services.NewLoginFormAnalyzer().Analyze(ctx)
+	services.NewHeadingAnalyzer().Analyze(ctx)
 
 	internal, external := 0, 0
 	doc.Find("a[href]").Each(func(_ int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
-		if strings.HasPrefix(href, "/") || strings.Contains(href, url) {
+		if strings.HasPrefix(href, "/") || strings.Contains(href, formUrl) {
 			internal++
 		} else {
 			external++
 		}
 	})
 
+	fmt.Println("internal:", ctx.Manager.GetPageInfoModal())
+
 	c.HTML(http.StatusOK, "result.html", gin.H{
-		"URL":      url,
-		"Title":    title,
-		"Headings": headings,
+		"URL":      formUrl,
+		"Title":    ctx.Manager.GetPageInfoModal().Title,
+		"Headings": ctx.Manager.GetPageInfoModal().HeadingProperties,
 		"Internal": internal,
 		"External": external,
-		"HasLogin": hasLogin,
+		"HasLogin": ctx.Manager.GetPageInfoModal().HasLogin,
 	})
 }

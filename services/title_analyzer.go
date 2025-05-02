@@ -1,14 +1,9 @@
 package services
 
-import (
-	"github.com/PuerkitoBio/goquery"
-	"web-analyzer/modals"
-)
-
 type titleAnalyzer struct{}
 
-func (t titleAnalyzer) Analyze(doc *goquery.Document, manager *modals.PageInfoModalManager) {
-	manager.SetTitle(doc.Find("title").Text())
+func (t titleAnalyzer) Analyze(ctx AnalyzerContext) {
+	ctx.Manager.SetTitle(ctx.Document.Find("title").Text())
 }
 
 func TitleAnalyzer() Analyzer {

@@ -4,9 +4,9 @@ import "sync"
 
 type PageInfoModal struct {
 	Url               string
-	HeadingProperties []Property
-	HtmlVersion       string `json:"htmlVersion"`
-	Title             string `json:"title"`
+	HeadingProperties []Property `json:"Headings"`
+	HtmlVersion       string     `json:"htmlVersion"`
+	Title             string     `json:"title"`
 	//ServiceTime    int64     `json:"serviceTime"`
 	//WebExtractTime int64     `json:"webExtractTime"`
 	NoOfInternalLinks     int  `json:"noOfInternalLinks"`
@@ -16,8 +16,8 @@ type PageInfoModal struct {
 }
 
 type Property struct {
-	propertyName        string
-	numberOfOccurrences int
+	PropertyName        string
+	NumberOfOccurrences int
 }
 
 type PageInfoModalManager struct {
@@ -25,10 +25,10 @@ type PageInfoModalManager struct {
 	lock          sync.Mutex
 }
 
-func NewPageInfoModalManager() PageInfoModalManager {
+func NewPageInfoModalManager() *PageInfoModalManager {
 
 	properties := make([]Property, 0)
-	return PageInfoModalManager{
+	return &PageInfoModalManager{
 		pageInfoModal: PageInfoModal{
 			HeadingProperties: properties,
 		},
@@ -57,4 +57,22 @@ func (modalManager *PageInfoModalManager) SetHasLogin(hasLogin bool) {
 	modalManager.lock.Lock()
 	defer modalManager.lock.Unlock()
 	modalManager.pageInfoModal.HasLogin = hasLogin
+}
+
+func (modalManager *PageInfoModalManager) SetHeadingProperties(headingLevel string, noOfOccurrences int) {
+	modalManager.lock.Lock()
+	defer modalManager.lock.Unlock()
+	modalManager.pageInfoModal.HeadingProperties = append(
+		modalManager.pageInfoModal.HeadingProperties,
+		Property{
+			PropertyName:        headingLevel,
+			NumberOfOccurrences: noOfOccurrences,
+		},
+	)
+}
+
+func (modalManager *PageInfoModalManager) GetPageInfoModal() PageInfoModal {
+	modalManager.lock.Lock()
+	defer modalManager.lock.Unlock()
+	return modalManager.pageInfoModal
 }
