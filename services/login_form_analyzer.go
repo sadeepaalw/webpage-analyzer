@@ -7,6 +7,6 @@ func (l loginFormAnalyzer) Analyze(ctx AnalyzerContext) {
 	ctx.Manager.SetHasLogin(hasLogin)
 }
 
-func NewLoginFormAnalyzer() Analyzer {
+func LoginFormAnalyzer() Analyzer {
 	return &loginFormAnalyzer{}
 }

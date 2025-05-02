@@ -9,7 +9,7 @@ import (
 func InvokeRequest(url string, method string) ([]byte, int, error) {
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 15 * time.Second,
 	}
 
 	req, err := http.NewRequest(method, url, nil)

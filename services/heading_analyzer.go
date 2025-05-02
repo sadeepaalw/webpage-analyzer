@@ -12,6 +12,6 @@ func (h headingAnalyzer) Analyze(ctx AnalyzerContext) {
 	}
 }
 
-func NewHeadingAnalyzer() Analyzer {
+func HeadingAnalyzer() Analyzer {
 	return &headingAnalyzer{}
 }

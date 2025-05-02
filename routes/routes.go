@@ -7,6 +7,6 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 	r.LoadHTMLGlob("web/*")
-	r.GET("/", handler.InvokeInitialPage)
+	r.GET("/", handler.LoadInitialPage)
 	r.POST("/analyze", handler.InvokeAnalyzer)
 }

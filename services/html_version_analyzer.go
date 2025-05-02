@@ -1,35 +1,53 @@
 package services
 
 import (
+	"bytes"
+	"fmt"
 	"golang.org/x/net/html"
+	"strings"
 )
 
-type HtmlVersionAnalyzer struct{}
+type htmlVersionAnalyzer struct{}
 
-func (a HtmlVersionAnalyzer) Analyze(ctx AnalyzerContext) {
+func (a htmlVersionAnalyzer) Analyze(ctx AnalyzerContext) {
 
-	//version := detectHTMLVersion(&ctx.Document.)
-	//ctx.Manager.SetHtmlVersion(version)
-}
-
-func detectHTMLVersion(doc *html.Node) string {
-	for node := doc; node != nil; node = node.NextSibling {
-		if node.Type == html.DoctypeNode {
-			switch node.Data {
-			case "html":
-				return "HTML5"
-			case "HTML 4.01":
-				return "HTML 4.01"
-			case "XHTML 1.0":
-				return "XHTML 1.0"
-			default:
-				return node.Data
-			}
-		}
+	var buf bytes.Buffer
+	err := html.Render(&buf, ctx.Document.Nodes[0])
+	if err != nil {
+		return
 	}
-	return "Unknown"
+	htmlBytes := buf.Bytes()
+
+	content := strings.ToLower(string(htmlBytes))
+	content = strings.TrimSpace(content)
+
+	version := detectHTMLVersion(content)
+	fmt.Println(version)
+	ctx.Manager.SetHtmlVersion(version)
 }
 
-func NewHtmlVersionAnalyzer() Analyzer {
-	return &HtmlVersionAnalyzer{}
+func detectHTMLVersion(content string) string {
+	if strings.HasPrefix(content, "<!doctype html>") {
+		return "HTML5"
+	}
+
+	if strings.Contains(content, "xhtml 1.0 strict") {
+		return "XHTML 1.0 Strict"
+	} else if strings.Contains(content, "xhtml 1.0 transitional") {
+		return "XHTML 1.0 Transitional"
+	} else if strings.Contains(content, "xhtml 1.0 frameset") {
+		return "XHTML 1.0 Frameset"
+	} else if strings.Contains(content, "html 4.01 strict") {
+		return "HTML 4.01 Strict"
+	} else if strings.Contains(content, "html 4.01 transitional") {
+		return "HTML 4.01 Transitional"
+	} else if strings.Contains(content, "html 4.01 frameset") {
+		return "HTML 4.01 Frameset"
+	}
+
+	return "Unknown or Missing DOCTYPE"
+}
+
+func HtmlVersionAnalyzer() Analyzer {
+	return &htmlVersionAnalyzer{}
 }

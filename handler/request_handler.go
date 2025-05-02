@@ -6,32 +6,21 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"net/url"
 	"strings"
 	"web-analyzer/adapter"
 	"web-analyzer/modals"
 	"web-analyzer/services"
+	"web-analyzer/utils"
 	"web-analyzer/validators"
 )
 
-func GetBaseURL(rawUrl string) (*url.URL, error) {
-	parsedURL, err := url.Parse(rawUrl)
-	if err != nil {
-		return nil, err
-	}
-	parsedURL.Path = ""
-	parsedURL.RawQuery = ""
-	parsedURL.Fragment = ""
-	return parsedURL, nil
-}
-
-func InvokeInitialPage(c *gin.Context) {
+func LoadInitialPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "input.html", nil)
 }
 
 func InvokeAnalyzer(c *gin.Context) {
 
-	formUrl := c.PostForm("formUrl")
+	formUrl := c.PostForm("url")
 
 	isValid := validators.IsValidURL(formUrl)
 	if !isValid {
@@ -43,7 +32,7 @@ func InvokeAnalyzer(c *gin.Context) {
 		return
 	}
 
-	baseUrl, err := GetBaseURL(formUrl)
+	baseUrl, err := utils.GetBaseURL(formUrl)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
@@ -95,27 +84,31 @@ func InvokeAnalyzer(c *gin.Context) {
 	}
 
 	services.TitleAnalyzer().Analyze(ctx)
-	services.NewLoginFormAnalyzer().Analyze(ctx)
-	services.NewHeadingAnalyzer().Analyze(ctx)
+	services.LoginFormAnalyzer().Analyze(ctx)
+	services.HeadingAnalyzer().Analyze(ctx)
+	services.HtmlVersionAnalyzer().Analyze(ctx)
+	services.LinkAnalyzer().Analyze(ctx)
 
-	internal, external := 0, 0
-	doc.Find("a[href]").Each(func(_ int, s *goquery.Selection) {
-		href, _ := s.Attr("href")
-		if strings.HasPrefix(href, "/") || strings.Contains(href, formUrl) {
-			internal++
-		} else {
-			external++
-		}
-	})
+	//internal, external := 0, 0
+	//doc.Find("a[href]").Each(func(_ int, s *goquery.Selection) {
+	//	href, _ := s.Attr("href")
+	//	if strings.HasPrefix(href, "/") || strings.Contains(href, formUrl) {
+	//		internal++
+	//	} else {
+	//		external++
+	//	}
+	//})
 
-	fmt.Println("internal:", ctx.Manager.GetPageInfoModal())
+	pageInfoModal := ctx.Manager.GetPageInfoModal()
+	fmt.Println("internal:", pageInfoModal)
 
 	c.HTML(http.StatusOK, "result.html", gin.H{
 		"URL":      formUrl,
-		"Title":    ctx.Manager.GetPageInfoModal().Title,
-		"Headings": ctx.Manager.GetPageInfoModal().HeadingProperties,
-		"Internal": internal,
-		"External": external,
-		"HasLogin": ctx.Manager.GetPageInfoModal().HasLogin,
+		"Title":    pageInfoModal.Title,
+		"Version":  pageInfoModal.HtmlVersion,
+		"Headings": pageInfoModal.HeadingProperties,
+		"Internal": pageInfoModal.NoOfInternalLinks,
+		"External": pageInfoModal.NoOfExternalLinks,
+		"HasLogin": pageInfoModal.HasLogin,
 	})
 }
