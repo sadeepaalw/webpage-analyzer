@@ -2,14 +2,14 @@ package services
 
 import (
 	"bytes"
-	"fmt"
-	"golang.org/x/net/html"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type htmlVersionAnalyzer struct{}
 
-func (a htmlVersionAnalyzer) Analyze(ctx AnalyzerContext) {
+func (h *htmlVersionAnalyzer) Analyze(ctx AnalyzerContext) {
 
 	var buf bytes.Buffer
 	err := html.Render(&buf, ctx.Document.Nodes[0])
@@ -22,7 +22,6 @@ func (a htmlVersionAnalyzer) Analyze(ctx AnalyzerContext) {
 	content = strings.TrimSpace(content)
 
 	version := detectHTMLVersion(content)
-	fmt.Println(version)
 	ctx.Manager.SetHtmlVersion(version)
 }
 

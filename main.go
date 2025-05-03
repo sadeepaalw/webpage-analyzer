@@ -1,18 +1,20 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"web-analyzer/routes"
 	"web-analyzer/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	utils.InitLogger()
-	//config.LoadConfig()
-	//database.InitDB()
 
 	r := gin.Default()
 	routes.SetupRoutes(r)
+
+	// todo only for dev
+	_ = r.SetTrustedProxies([]string{"0.0.0.0/0"})
 
 	err := r.Run(":8080")
 	if err != nil {

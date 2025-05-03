@@ -3,17 +3,15 @@ package modals
 import "sync"
 
 type PageInfoModal struct {
-	Url               string
-	HeadingProperties []Property `json:"Headings"`
-	HtmlVersion       string     `json:"htmlVersion"`
-	Title             string     `json:"title"`
-	//ServiceTime    int64     `json:"serviceTime"`
-	//WebExtractTime int64     `json:"webExtractTime"`
-	NoOfInternalLinks         int      `json:"noOfInternalLinks"`
-	NoOfExternalLinks         int      `json:"noOfExternalLinks"`
-	NoOfInaccessibleLinks     int      `json:"noOfInaccessibleLinks"`
-	HasLogin                  bool     `json:"hasLogin"`
-	InAccessibleLinksMetaInfo []string `json:"inAccessibleLinksMetaInfo"`
+	Url                       string
+	HeadingProperties         []Property
+	HtmlVersion               string
+	Title                     string
+	NoOfInternalLinks         int
+	NoOfExternalLinks         int
+	NoOfInaccessibleLinks     int
+	HasLogin                  bool
+	InAccessibleLinksMetaInfo []string
 }
 
 type Property struct {

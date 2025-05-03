@@ -77,7 +77,13 @@
 
     <p><strong>Internal Links:</strong> {{ .Internal }}</p>
     <p><strong>External Links:</strong> {{ .External }}</p>
+    <p><strong>Inaccessible Links:</strong> {{ .Inaccessible }}</p>
     <p><strong>Contains Login Form:</strong> {{ if .HasLogin }}Yes{{ else }}No{{ end }}</p>
+
+    <br>
+
+    <p>Total ExecutionTime: {{ .ExecutionTime }}</p>
+    <br>
 
     <a href="/">← Back to Home</a>
 </div>

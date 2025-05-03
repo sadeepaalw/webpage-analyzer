@@ -3,15 +3,17 @@ package handler
 import (
 	"bytes"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 	"web-analyzer/adapter"
 	"web-analyzer/modals"
 	"web-analyzer/services"
 	"web-analyzer/utils"
 	"web-analyzer/validators"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/gin-gonic/gin"
 )
 
 func LoadInitialPage(c *gin.Context) {
@@ -20,16 +22,26 @@ func LoadInitialPage(c *gin.Context) {
 
 func InvokeAnalyzer(c *gin.Context) {
 
+	start := time.Now()
+
 	formUrl := c.PostForm("url")
+	utils.Log.Infof("Started analyzing. url: %s", formUrl)
 
 	isValid := validators.IsValidURL(formUrl)
 	if !isValid {
+
+		utils.Log.Error()
+
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
 			"StatusCode":   http.StatusBadRequest,
 			"ErrorMessage": "Invalid URL please check the URL and try again",
 		})
 		return
+	}
+
+	if !strings.HasPrefix(formUrl, "http") {
+		formUrl = "https://" + formUrl
 	}
 
 	baseUrl, err := utils.GetBaseURL(formUrl)
@@ -39,10 +51,6 @@ func InvokeAnalyzer(c *gin.Context) {
 			"StatusCode":   http.StatusBadRequest,
 			"ErrorMessage": "Unable to parse URL please check the URL and try again",
 		})
-	}
-
-	if !strings.HasPrefix(formUrl, "http") {
-		formUrl = "https://" + formUrl
 	}
 
 	body, status, err := adapter.InvokeRequest(formUrl, "GET")
@@ -83,32 +91,24 @@ func InvokeAnalyzer(c *gin.Context) {
 		BaseURL:  baseUrl,
 	}
 
-	services.TitleAnalyzer().Analyze(ctx)
-	services.LoginFormAnalyzer().Analyze(ctx)
-	services.HeadingAnalyzer().Analyze(ctx)
-	services.HtmlVersionAnalyzer().Analyze(ctx)
-	services.LinkAnalyzer().Analyze(ctx)
-
-	//internal, external := 0, 0
-	//doc.Find("a[href]").Each(func(_ int, s *goquery.Selection) {
-	//	href, _ := s.Attr("href")
-	//	if strings.HasPrefix(href, "/") || strings.Contains(href, formUrl) {
-	//		internal++
-	//	} else {
-	//		external++
-	//	}
-	//})
+	services.InvokeAnalyzers(ctx)
 
 	pageInfoModal := ctx.Manager.GetPageInfoModal()
-	fmt.Println("internal:", pageInfoModal)
+
+	defer func() {
+		elapsed := time.Since(start).Seconds()
+		utils.Log.Infof("Completed analysis. url: %s,  elapsed_time: %ds", formUrl, int(elapsed))
+	}()
 
 	c.HTML(http.StatusOK, "result.html", gin.H{
-		"URL":      formUrl,
-		"Title":    pageInfoModal.Title,
-		"Version":  pageInfoModal.HtmlVersion,
-		"Headings": pageInfoModal.HeadingProperties,
-		"Internal": pageInfoModal.NoOfInternalLinks,
-		"External": pageInfoModal.NoOfExternalLinks,
-		"HasLogin": pageInfoModal.HasLogin,
+		"URL":           formUrl,
+		"Title":         pageInfoModal.Title,
+		"Version":       pageInfoModal.HtmlVersion,
+		"Headings":      pageInfoModal.HeadingProperties,
+		"Internal":      pageInfoModal.NoOfInternalLinks,
+		"External":      pageInfoModal.NoOfExternalLinks,
+		"Inaccessible":  pageInfoModal.NoOfInaccessibleLinks,
+		"HasLogin":      pageInfoModal.HasLogin,
+		"ExecutionTime": fmt.Sprintf("%2d seconds", int(time.Since(start).Seconds())),
 	})
 }
