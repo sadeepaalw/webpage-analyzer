@@ -66,7 +66,7 @@ func checkInaccessiblity(url string, wg *sync.WaitGroup, mu *sync.Mutex, inacces
 	defer wg.Done()
 	defer func() { <-sem }()
 
-	_, statusCode, err := adapter.InvokeRequest(url, "GET")
+	_, statusCode, err := adapter.NewRequestInvoker().InvokeRequest(url, "GET")
 
 	if err != nil || statusCode >= 400 {
 		mu.Lock()

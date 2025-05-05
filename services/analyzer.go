@@ -1,9 +1,10 @@
 package services
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"web-analyzer/modals"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type Analyzer interface {

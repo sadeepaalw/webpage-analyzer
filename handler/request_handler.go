@@ -53,7 +53,8 @@ func InvokeAnalyzer(c *gin.Context) {
 		})
 	}
 
-	body, status, err := adapter.InvokeRequest(formUrl, "GET")
+	body, status, err := adapter.NewRequestInvoker().InvokeRequest(formUrl, "GET")
+
 	if err != nil {
 		c.HTML(http.StatusNotFound, "error.html", gin.H{
 			"URL":          formUrl,
