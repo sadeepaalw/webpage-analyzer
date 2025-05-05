@@ -29,7 +29,7 @@ func InvokeAnalyzers(ctx AnalyzerContext) {
 		go func(a AnalyzerWrapper) {
 			defer wg.Done()
 			start := time.Now()
-			utils.Log.Infof("Starting execution of %s, StartTime: %ds", a.Name, int(start.Second()))
+			utils.Log.Infof("Starting execution of %s", a.Name)
 			a.Analyze(ctx)
 			utils.Log.Infof("Completed execution of %s, Elapsed Time: %ds", a.Name, int(time.Since(start).Seconds()))
 		}(analyzer)

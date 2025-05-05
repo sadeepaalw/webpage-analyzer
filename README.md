@@ -33,6 +33,16 @@ Built with Go routines, `gin`, `goquery`, `logrus`, and supports extensible anal
 
 ---
 
+## 🛠️ Requirements
+
+    ✅ Docker must be installed
+
+    ✅ Git (to clone the repo)
+
+    ✅ Go (if running outside Docker)
+
+💡 Make sure Docker is running on your system before proceeding.
+
 ## 🛠️ Installation
 
 
@@ -79,4 +89,41 @@ http://localhost:8080 in your browser to access the UI
 
 ```bash
 docker-compose down
+```
+
+## 🧪 Running Tests
+
+
+Make sure go is installed on your machine.
+
+### Run Unit Tests
+
+```bash
+go test ./... -v
+```
+
+### Run Tests with Code Coverage
+
+```bash
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+```
+
+Folder Structure
+
+```bash
+webpage-analyzer/
+├── adapter/                 # HTTP client utilities
+├── handler/                 # Request handler responsible for loading the UI and results or the errors
+├── modals/                  # Data models and interfaces
+├── routes/                  # Routes for the request handler
+├── services/                # All analyzers (title, HTML version, links, etc.)
+├── resources/               # Sample HTML files for testing
+├── utils/                   # Utilities for logger and URL 
+├── validators/              # Validators for validating URL
+├── web/                     # Html content files 
+├── Dockerfile               # Docker image definition
+├── docker-compose.yml       # Docker Compose config
+├── main.go                  # Entry point
+└── README.md
 ```

@@ -30,7 +30,7 @@ func InvokeAnalyzer(c *gin.Context) {
 	isValid := validators.IsValidURL(formUrl)
 	if !isValid {
 
-		utils.Log.Error()
+		utils.Log.Errorf("Invalid url: %s", formUrl)
 
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
@@ -46,6 +46,9 @@ func InvokeAnalyzer(c *gin.Context) {
 
 	baseUrl, err := utils.GetBaseURL(formUrl)
 	if err != nil {
+
+		utils.Log.Errorf("Unable to parse URL please: %s", formUrl)
+
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
 			"StatusCode":   http.StatusBadRequest,
@@ -56,6 +59,9 @@ func InvokeAnalyzer(c *gin.Context) {
 	body, status, err := adapter.NewRequestInvoker().InvokeRequest(formUrl, "GET")
 
 	if err != nil {
+
+		utils.Log.Errorf("Failed to fetch URL: %s", formUrl)
+
 		c.HTML(http.StatusNotFound, "error.html", gin.H{
 			"URL":          formUrl,
 			"StatusCode":   http.StatusNotFound,
@@ -66,6 +72,9 @@ func InvokeAnalyzer(c *gin.Context) {
 	}
 
 	if status != http.StatusOK {
+
+		utils.Log.Errorf("Error in status code: %s", formUrl)
+
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
 			"StatusCode":   status,
@@ -77,6 +86,9 @@ func InvokeAnalyzer(c *gin.Context) {
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
 	if err != nil {
+
+		utils.Log.Errorf("HTML parsing error: %s", formUrl)
+
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"URL":          formUrl,
 			"StatusCode":   status,
