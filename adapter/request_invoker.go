@@ -16,7 +16,7 @@ type RequestInvoker struct {
 
 func NewRequestInvoker() *RequestInvoker {
 	return &RequestInvoker{
-		Client: &http.Client{Timeout: 5 * time.Second},
+		Client: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 

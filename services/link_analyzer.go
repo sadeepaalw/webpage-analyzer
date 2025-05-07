@@ -67,30 +67,33 @@ func checkInaccessiblity(url string, wg *sync.WaitGroup, mu *sync.Mutex, inacces
 	defer wg.Done()
 	defer func() { <-sem }()
 
-	_, statusCode, err := adapter.NewRequestInvoker().InvokeRequest(url, "GET")
+	isInaccessible := false
+
+	_, statusCode, err := adapter.NewRequestInvoker().InvokeRequest(url, "HEAD")
 
 	if (err != nil || statusCode == 0 || statusCode == 503) && statusCode != 429 {
-		mu.Lock()
-		*inaccessible++
-		*inaccessibleLinks = append(*inaccessibleLinks, url)
-		mu.Unlock()
-
-		utils.Log.Infof("statusCode : %v\n", statusCode)
-		utils.Log.Infof("err : %v\n", err)
-		utils.Log.Infof("Inaccess GET: %v\n", url)
-		return
-	}
-
-	_, statusCode, err = adapter.NewRequestInvoker().InvokeRequest(url, "HEAD")
-
-	if (err != nil || statusCode == 0 || statusCode == 503) && statusCode != 429 {
-		mu.Lock()
-		*inaccessible++
-		*inaccessibleLinks = append(*inaccessibleLinks, url)
-		mu.Unlock()
 		utils.Log.Infof("statusCode : %v\n", statusCode)
 		utils.Log.Infof("err : %v\n", err)
 		utils.Log.Infof("Inaccess HEAD: %v\n", url)
+		isInaccessible = true
+
+	} else {
+		_, statusCode, err = adapter.NewRequestInvoker().InvokeRequest(url, "GET")
+
+		if (err != nil || statusCode == 0 || statusCode == 503) && statusCode != 429 {
+
+			utils.Log.Infof("statusCode : %v\n", statusCode)
+			utils.Log.Infof("err : %v\n", err)
+			utils.Log.Infof("Inaccess GET: %v\n", url)
+			isInaccessible = true
+		}
+	}
+
+	if isInaccessible {
+		mu.Lock()
+		*inaccessible++
+		*inaccessibleLinks = append(*inaccessibleLinks, url)
+		mu.Unlock()
 	}
 
 }
