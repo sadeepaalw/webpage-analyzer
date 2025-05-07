@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"web-analyzer/adapter"
+	"web-analyzer/utils"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -68,11 +69,28 @@ func checkInaccessiblity(url string, wg *sync.WaitGroup, mu *sync.Mutex, inacces
 
 	_, statusCode, err := adapter.NewRequestInvoker().InvokeRequest(url, "GET")
 
-	if err != nil || statusCode >= 400 {
+	if (err != nil || statusCode == 0 || statusCode == 503) && statusCode != 429 {
 		mu.Lock()
 		*inaccessible++
 		*inaccessibleLinks = append(*inaccessibleLinks, url)
 		mu.Unlock()
+
+		utils.Log.Infof("statusCode : %v\n", statusCode)
+		utils.Log.Infof("err : %v\n", err)
+		utils.Log.Infof("Inaccess GET: %v\n", url)
+		return
+	}
+
+	_, statusCode, err = adapter.NewRequestInvoker().InvokeRequest(url, "HEAD")
+
+	if (err != nil || statusCode == 0 || statusCode == 503) && statusCode != 429 {
+		mu.Lock()
+		*inaccessible++
+		*inaccessibleLinks = append(*inaccessibleLinks, url)
+		mu.Unlock()
+		utils.Log.Infof("statusCode : %v\n", statusCode)
+		utils.Log.Infof("err : %v\n", err)
+		utils.Log.Infof("Inaccess HEAD: %v\n", url)
 	}
 
 }
