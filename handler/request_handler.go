@@ -102,6 +102,7 @@ func InvokeAnalyzer(c *gin.Context) {
 		Document: doc,
 		Manager:  modals.NewPageInfoModalManager(),
 		BaseURL:  baseUrl,
+		InputUrl: formUrl,
 	}
 
 	services.InvokeAnalyzers(ctx)

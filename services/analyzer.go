@@ -15,4 +15,5 @@ type AnalyzerContext struct {
 	Document *goquery.Document
 	Manager  *modals.PageInfoModalManager
 	BaseURL  *url.URL
+	InputUrl string
 }
